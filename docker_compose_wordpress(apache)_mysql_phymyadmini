@@ -1,0 +1,167 @@
+version: '3'
+services:
+  # MySQL database
+  my_database:
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: mypassword_password_12345
+      MYSQL_DATABASE: my_wp_database
+      MYSQL_USER: my_wp_user
+      MYSQL_PASSWORD: my_wp_user_password
+    volumes:
+      - mysql:/var/lib/mysql
+
+  # WordPress
+  wordpress:
+    depends_on:
+      - my_database
+    image: wordpress:latest
+    restart: always
+    ports:
+      - "8000:80"
+    environment:
+      WORDPRESS_DB_HOST: my_database:3306
+      WORDPRESS_DB_USER: my_wp_user
+      WORDPRESS_DB_PASSWORD: my_wp_user_password
+      WORDPRESS_DB_NAME: my_wp_database
+    volumes:
+      - ./wordpress:/var/www/html
+
+  # phpMyAdmin
+  phpmyadmin:
+    depends_on:
+      - my_database
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: my_database
+      MYSQL_ROOT_PASSWORD: mypassword_password_12345
+
+volumes:
+  mysql: {}
+
+-------------------------->documentation<------------------------------------------
+
+Simple Explanation
+MySQL Service (my_database):
+
+Uses the official MySQL image.
+Sets up environment variables for MySQL root password, database name, user, and user password.
+Persists MySQL data in a named volume called mysql.
+WordPress Service (wordpress):
+
+Uses the latest WordPress image.
+Depends on the MySQL service (my_database) to be up and running.
+Maps port 8000 on the host to port 80 in the container.
+Sets environment variables to connect WordPress to the MySQL database.
+Mounts a local directory ./wordpress to the container’s /var/www/html directory for persistence and access to WordPress files.
+phpMyAdmin Service (phpmyadmin):
+
+Uses the official phpMyAdmin image.
+Depends on the MySQL service (my_database) to be up and running.
+Maps port 8080 on the host to port 80 in the container.
+Sets environment variables to connect phpMyAdmin to the MySQL database.
+Volumes:
+
+Defines a named volume mysql to persist MySQL data.
+Workflow Diagram
+Here is a simple diagram illustrating the setup:
+
+lua
+Copy code
+  +--------------+         +--------------+         +-------------+
+  |              |         |              |         |             |
+  |  WordPress   | <-----> |   MySQL      | <-----> | phpMyAdmin  |
+  |  (port 8000) |         |  (port 3306) |         | (port 8080) |
+  |              |         |              |         |             |
+  +--------------+         +--------------+         +-------------+
+        |                       |                         |
+        |                       |                         |
+     ./wordpress          mysql:/var/lib/mysql            |
+        |                                                |
+        +------------------------------------------------+
+Workflow:
+The docker-compose command starts all the services defined in the docker-compose.yaml file.
+The MySQL container (my_database) starts and sets up the database with the provided credentials and database name.
+The WordPress container (wordpress) starts after the MySQL container is ready, connects to the MySQL database using the provided credentials, and makes WordPress accessible on port 8000.
+The phpMyAdmin container (phpmyadmin) starts, connects to the MySQL database using the provided credentials, and makes phpMyAdmin accessible on port 8080 for database management.
+
+command to execute docker-compose.yaml and stat stop and destroy 
+ChatGPT
+Here are the commands to execute, start, stop, and destroy your Docker Compose setup using the docker-compose.yaml file.
+
+Command to Execute Docker Compose
+Navigate to the directory containing your docker-compose.yaml file and run:
+
+bash
+Copy code
+docker-compose up -d
+This command starts the services defined in the docker-compose.yaml file in detached mode (running in the background).
+Command to Start Docker Compose Services
+If the services have been previously stopped and you want to start them again, use:
+
+bash
+Copy code
+docker-compose start
+This command starts the existing containers for a service that were stopped.
+Command to Stop Docker Compose Services
+To stop the services without removing the containers, use:
+
+bash
+Copy code
+docker-compose stop
+This stops the running containers but keeps them around for future use.
+Command to Destroy Docker Compose Setup
+To stop and remove all the containers, networks, and volumes defined in your docker-compose.yaml, use:
+
+bash
+Copy code
+docker-compose down -v
+The -v flag removes the named volumes declared in the volumes section of the docker-compose.yaml file.
+Summary
+Execute: docker-compose up -d
+Start: docker-compose start
+Stop: docker-compose stop
+Destroy: docker-compose down -v
+Workflow Diagram
+Here is a simple diagram illustrating the Docker Compose workflow:
+
+sql
+Copy code
++--------------------------------------+
+|   docker-compose up -d               |
+|      |                               |
+|      v                               |
+|  [Containers Running]                |
+|      |                               |
+|      v                               |
+|   docker-compose stop                |
+|      |                               |
+|      v                               |
+|  [Containers Stopped]                |
+|      |                               |
+|      v                               |
+|   docker-compose start               |
+|      |                               |
+|      v                               |
+|  [Containers Running Again]          |
+|      |                               |
+|      v                               |
+|   docker-compose down -v             |
+|      |                               |
+|      v                               |
+|  [Containers and Volumes Removed]    |
++--------------------------------------+
+This workflow ensures you can manage the lifecycle of your Docker Compose services efficiently.
+
+
+
+
+
+
+
+
+
